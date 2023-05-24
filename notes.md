@@ -36,4 +36,27 @@
                 Action: "sts:AssumeRole" <-- Here is where STS is called out.
         - Permissions policy
     - Temporary credentials are used with identity federation, delegation, cross-account access and IAM roles
-    - IAM roles
+3. IAM Access Control
+    - Identity based policies
+        - controls actions an identity can perform on resources and under what conditions.
+        - Can be attached to a user, group, or role
+        - Types
+            - aws managed: created and managed by AWS
+            - customer managed: customer managed by customers
+        - Can be attached to multiple types at once, identity policies could be attached to user, group, and role all at the same time.
+    - Resource based policies
+        - Attached to resources such as S3 bucket.
+        - Resource based policies grant the specified PRINCIPLE(role, user), the PERMISSION, to perform specifix ACTION on RESOURCE.
+        - What is meant by video 19, 3:47 related to IAM role with a trust policy and permissions policy.
+4. RBAC
+    - Role based access control
+    - May have groups where we place users of similar types together and place permissions policies to the group.
+5. ABAC
+    - Attribute based access control
+    - Tags could be used for this behavior.  Based on tags you get X permissions.
+        - A conditional statement would need to be used that checks for the tags in question.
+6. Permissions boundaries
+    - Can be applied to USERS and ROLES
+    - Adds a layer to your already granted permissions.  If you have access to a dynamodb based on a resource policy, you'd need your permissions boundary to also allow you access to dynamo.  If it wasn't included on the perm boundary you couldn't access it.  It looks like two layers of permissions.  You still need actual permissions to an object, but you also need it added to the boundary as well just stating you can do some specific action.
+    
+            
