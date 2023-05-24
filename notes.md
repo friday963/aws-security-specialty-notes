@@ -36,6 +36,7 @@
                 Action: "sts:AssumeRole" <-- Here is where STS is called out.
         - Permissions policy
     - Temporary credentials are used with identity federation, delegation, cross-account access and IAM roles
+
 3. IAM Access Control
     - Identity based policies
         - controls actions an identity can perform on resources and under what conditions.
@@ -56,23 +57,30 @@
         - Specify the max permissions for an OU
     - Session policies 
         - Used with assumeRole* API actions
+
 4. RBAC
     - Role based access control
     - May have groups where we place users of similar types together and place permissions policies to the group.
+
 5. ABAC
     - Attribute based access control
     - Tags could be used for this behavior.  Based on tags you get X permissions.
         - A conditional statement would need to be used that checks for the tags in question.
+
 6. Permissions boundaries
     - Can be applied to USERS and ROLES
     - Adds a layer to your already granted permissions.  If you have access to a dynamodb based on a resource policy, you'd need your permissions boundary to also allow you access to dynamo.  If it wasn't included on the perm boundary you couldn't access it.  It looks like two layers of permissions.  You still need actual permissions to an object, but you also need it added to the boundary as well just stating you can do some specific action.
+
 7. Evaluation Logic
-<!-- INSERT POLICY EVAL image here --> 
+
+    ![eval logic](images/policyeval.png)
+
 8. Determination rules
     - By default all requests are IMPLICITLY denied.
     - Explicit allow in an identity based or resource based policy OVERRIDES the default mentioned above.
     - Permissions boundary, SCP, or session policy could override the allow actions with an implicity deny.
     - EXPLICIT denies in ANY policy overrides ANY allow.
+    
 9. IAM policy structure
     - effect: allow or deny
     - action: element with the specific api action which you are allowing or denying
