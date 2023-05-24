@@ -45,9 +45,17 @@
             - customer managed: customer managed by customers
         - Can be attached to multiple types at once, identity policies could be attached to user, group, and role all at the same time.
     - Resource based policies
+        - You can tell a RESOURCE based policy if it has a PRINCIPLE attached to it.
+            - Could be a * meaning any user or role ect.  Or you could put a specific user or role in there.
         - Attached to resources such as S3 bucket.
         - Resource based policies grant the specified PRINCIPLE(role, user), the PERMISSION, to perform specifix ACTION on RESOURCE.
         - What is meant by video 19, 3:47 related to IAM role with a trust policy and permissions policy.
+    - IAM permissions boundaries
+        - Sets the maximum permissions an identity based policy can grant to an IAM entity.
+    - SCP
+        - Specify the max permissions for an OU
+    - Session policies 
+        - Used with assumeRole* API actions
 4. RBAC
     - Role based access control
     - May have groups where we place users of similar types together and place permissions policies to the group.
@@ -58,5 +66,15 @@
 6. Permissions boundaries
     - Can be applied to USERS and ROLES
     - Adds a layer to your already granted permissions.  If you have access to a dynamodb based on a resource policy, you'd need your permissions boundary to also allow you access to dynamo.  If it wasn't included on the perm boundary you couldn't access it.  It looks like two layers of permissions.  You still need actual permissions to an object, but you also need it added to the boundary as well just stating you can do some specific action.
-    
-            
+7. Evaluation Logic
+<!-- INSERT POLICY EVAL image here --> 
+8. Determination rules
+    - By default all requests are IMPLICITLY denied.
+    - Explicit allow in an identity based or resource based policy OVERRIDES the default mentioned above.
+    - Permissions boundary, SCP, or session policy could override the allow actions with an implicity deny.
+    - EXPLICIT denies in ANY policy overrides ANY allow.
+9. IAM policy structure
+    - effect: allow or deny
+    - action: element with the specific api action which you are allowing or denying
+    - resource: ARN of the resource you want to take action against.
+    - condition: (optional) when should this policy have action taken against it.
