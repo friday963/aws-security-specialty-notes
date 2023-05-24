@@ -24,3 +24,16 @@
     - Regular users
         - up to 5000 individual users can be created
         - They have no permissions by default
+
+2. STS security token service
+    - Two pieces to an IAM role:
+        - Trust policy:
+            - Controls who can assume a specific role.
+            - Trust policy should have the following:
+                Effect: Allow/Deny
+                Principal
+                    service: ec2.amazon.com, s3.amazon.com, ebs.amazon.com ect
+                Action: "sts:AssumeRole" <-- Here is where STS is called out.
+        - Permissions policy
+    - Temporary credentials are used with identity federation, delegation, cross-account access and IAM roles
+    - IAM roles
