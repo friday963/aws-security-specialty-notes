@@ -86,3 +86,19 @@
     - action: element with the specific api action which you are allowing or denying
     - resource: ARN of the resource you want to take action against.
     - condition: (optional) when should this policy have action taken against it.
+
+10. IAM best practices
+    - Secure or delete ROOT user access keys.
+    - Create individual IAM users.
+    - Use groups to assin permission to IAM users.
+    - Grant least privilege.
+    - Get started using permissions with AWS maanged policies.
+    - Use customer managed policies instead of INLINE policies.
+    - Enable MFA.
+    - Use roles for aplications that run on EC2 instances.
+    - Use roles to delegate permissions.
+    - Rotate creds regularly.
+    - Remove unnecessary creds.
+    - Use policies condition for extra security
+    - Monitor activity in your account.
+
