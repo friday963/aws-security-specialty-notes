@@ -1,3 +1,5 @@
+IAM
+
 1. IAM users, groups, roles, and policies
     - In an account we have users, groups, roles, and policies
     - we have a group and can assign users to groups and can assign permissions to user (policies)
@@ -13,6 +15,15 @@
         - IAM role is an IAM identity that has specific permissions
         - Roles are assumed by users, applications, and services.
         - Once assumed, the identity "becomes" the role and gain the roles permissions.
+        - Use cases:
+            - Cross account access:  User in one account needs to access resource in another account.
+                - User A in account A needs to access a resource in account B.  User A must have an identity based policy in account A, there will be an sts:AssumeRole that allows this user to access a *role* in account B.  That role wil will have a *trust policy* (allows user from account A to assume role) and a *permissions policy* (this is also attached to the role and allows access to the actual resource).
+            - *External* cross account access
+                - All things above, but also must attach the external account number to the principle of the *trust policy*.
+            - Delegation of aws services:
+                - Ec2 with an *instance profile*.  The instance profile has a *trust policy* and a *permissions policy*.  
+                - *Trust policies* determine who can assume the role.
+
     - Policies:
         - Policies are documents that define permissions and are written in json.
         - All permissions are implicityly DENIED by default.  (You must explicitly allow something)
@@ -102,3 +113,20 @@
     - Use policies condition for extra security
     - Monitor activity in your account.
 
+Organizations and Control Tower
+
+1. Organizations
+    - Consolidates multiple AWS accounts into organizations so you can create and centrally manage them.
+    - Two features
+        - Consolidated billing within the "management account".
+        - All features - SCP's and tag policies.
+    - Consolidated billing
+        - Paying account: Independent and unable to access resources of other account.
+        - Linked account: all linked accounts are independent.
+2. Control tower
+    - Sits on top of Organizations.
+    - Creates a "landing zone" whish is a well architected multi-account baseline.
+    - Guardrails, used for governance and compliance.
+        - Preventitive guardrails are based on SCPs and disallow API actions.
+        - Detective guardrails implemented using Config and Lambda functions and monitor compliance.
+        - Root user in the *management* account can perform actions that guardrails would normally disallow.
