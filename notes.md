@@ -130,3 +130,101 @@ Organizations and Control Tower
         - Preventitive guardrails are based on SCPs and disallow API actions.
         - Detective guardrails implemented using Config and Lambda functions and monitor compliance.
         - Root user in the *management* account can perform actions that guardrails would normally disallow.
+
+3. Infrastructure Security
+    - VPC
+        - Use multiple HA for high availability.
+        - Control traffic with security groups and network acl's.
+        - Use IAM policies to control access to resources.
+        - Use cloudWatch to monitor VPC components.
+        - Use flow logs to capture network traffic.
+        - Separate your infrastructure with VPC's.
+        - Further isolate tiers of an application through subnets.
+        - Use privatelink to keep traffic private.
+        - Use private subnets if instances should not be accessed directly from the internet.
+        - Use egress-only internet gateway for ipv6 outbound connections (Does not accesspt incoming connection attempts).
+    - Stateful and stateless firewalls
+        - Stateful firewalls allow return traffic.
+        - Stateless firewalls will checks both directions of traffic, neither traffic flow is tracked.
+    - Network ACL/Security groups
+        - Security groups
+            - Applied to the ENI of a resources.
+            - Only have allow rules (does not have deny rules except for the implicit deny.)
+            - Has both inbound and outbound rules.
+        - NACL
+            - Stateless
+            - Proccessed in order of rules.
+    - VPC Peering
+        - Keeps traffic private between internal VPC resources.
+        - Must not have overlapping CIDR blocks.
+        - Does not support transitive peering.  Every VPC that wants to talk must be peered.
+    - VPC endpoints
+        - Allows users to connect to 'public' resources, privately.
+        - Creates an ENI in the subnet where your resources are located and neeed connectivity from.
+        - Need to add security group to add more granular security.
+    - VPC gateway endpoints
+        - No ENI created, route table entry created.
+        - Populated with a prefix list of the IP's of the public resources.
+        - Only works with s3 and dynamodb.
+        - Can add VPC endpoint policies to add more secure connectivity.
+    - VPC Flow logs
+        - Traffic capture of traffic going to or from your network resources.
+        - Stored in CloudWatch logs or S3.
+        - Can be captured from VPC, Subnet, or Network Interface.
+    - Access Keys and IAM roles
+        - Access keys
+            - Associated with an IAM account.
+            - AK use permissions assigned to the IAM user.
+            - AK are stored on the file system of the EC2.
+        - Instance profile
+            - Connects an IAM role to the Ec2.
+            - Role can be assumed by the Ec2.
+            - Gains permissions based on the policy assigned to the role.
+            - No creds stored on the Ec2.
+    - Amazon Inspector
+        - Runs assessments that check for security.
+        - Can run on schedule.
+        - Agent based application runs on Ec2 host.
+        - Network assessment doesn't require agent.
+        - Network assessment
+            - Checks what ports are open outside the VPC.
+            - If agent installed, can find processes reachable on ports.
+            - Pricing model based on number of *assessments* completed.
+        - Host assessments
+            - CVE harding best practices.
+            - requires the agent.
+            - Pricing model based on number of *assessments* completed.
+    - Systems manager session manager
+        - Remote management of instances without logging into servers
+        - removes need for ssh
+        - granular permissions with IAM
+        - can store session logs in S3 and output in cloudwatch logs
+        - require IAM permissions for EC2 to access SSM, S3, Cloudwatch logs.
+    - OpenSearch
+        - Cluster can be deployed intra-VPC or publicly accesible.
+        - Cannot switch from private to public endpoint or vica versa.
+        - Cannot launch on VPC using dedicated tenancy.
+        - Cannot move between VPC's but you can change the subnet and security group settings.
+        - Ingesting data:
+            - Kinesis data firehose.
+            - Logstash
+            - Elasticsearch/open search API
+    - Redshift
+        - Fully managed data warehouse.
+        - Uses SQL and BI tools.
+        - Online analytics processing (OLAP).
+        - Must create cluster subnet group and provide VPC ID and list of subnets in your VPC.
+        - For public cluster, specify an *elastic* IP to use.
+        - Must enable *DNS resolution* and *DNS hostnames* to connect to public cluster using private IP.
+        - Use security groups to control access to database ports.
+    - Config
+        - Evalutes configurations against desired settings.
+        - Get snapshot of current configs associated with AWS account.
+        - Retrieve configs of resources that exist in account.
+        - Retrieve historical configs.
+        - Receive notifications when resources are created, modified, deleted.
+        - View relationships between resources.
+        
+    
+
+
