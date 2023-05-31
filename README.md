@@ -288,7 +288,13 @@ Edge security
         - IP Sets: A collection of IP addresses that you can use as part of a rule statement.
         - Regex pattern sets: A collection of regex that you can use in a rule statement.
         - Match: statements compare web request or origin against conditions you provide.
-
+5. AWS Shield
+    - Protects agains DDOS attacks.
+    - Protects web applications, always running, does in line mitigation.
+    - Minimizes down time and latency.
+    - Two tiers: Standard and Advanced.
+    - Integrated into CloudFront.
+    
 
 
 
