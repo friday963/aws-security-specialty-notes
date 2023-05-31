@@ -248,7 +248,49 @@ Edge security
         - WAF ACL could be attached to CloudFront distribution.
         - Field level encryption can protect sensitive data through the entire app stack.
         - Geo restriction.
-    
+    - SSL/TLS
+        - Can issue SSL certification through ACM certificate manager
+        - Must be issued through us-east-1, however.
+        - CloudFront is a global service.
+        - certificate could also be issued from third party.
+        - default CloudFront domain name can be changed using CNAMES
+        - S3 has its own certificate
+        - Origin certificates must be public certificates.
+    - SNI (Server Name Indication)
+        - Method allows you to have multiple SSL/TLS certificates which correspond to different domain names attached to the same IP address on cloudfront.
+        - Normally you would need a unique IP for each domain/certificate.
+
+3. Lambda@Edge
+    - node.js or python functions to customize the the content cloudfront delivers.
+    - executes functions closer to the viewer.
+    - **Exam type questions**
+        - Can run these functions during the following lifecycle events of a request.
+            - After CF receives a request from viewer (vierwer request)
+            - Before CF forwards to origin (origin request)
+            - After CF receives the response from the origin(origin response)
+            - Before CF forwards the response to the viewer (viewer response)
+4. WAF
+    - Lets you create rules to filter web traffic using rules like IP addresses, headers, body, and custom URI's.
+    - **Exam type question**
+        - You can create rules to block common web exploits like *SQL injection*, and *cross site scripting*.
+    - You can put WAF in front of...
+        - CloudFront
+        - ALB
+        - API Gateway
+        - AWS AppSync
+    - Technical details about WAF
+        - Rules: contains a statement that defines the inspection criteria and the action to take if successful match.
+        - Rule groups: TODO
+        - Rule action: 
+            - Count: counts the request but doesn't block or allow.  Just continues processing remaining rules.
+            - Allow: allows request
+            - Block: Blocks the request with a 403.
+        - IP Sets: A collection of IP addresses that you can use as part of a rule statement.
+        - Regex pattern sets: A collection of regex that you can use in a rule statement.
+        - Match: statements compare web request or origin against conditions you provide.
+
+
+
 
 
 
