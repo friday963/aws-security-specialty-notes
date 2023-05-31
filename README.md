@@ -294,7 +294,110 @@ Edge security
     - Minimizes down time and latency.
     - Two tiers: Standard and Advanced.
     - Integrated into CloudFront.
+6. AWS Network Firewall
+    - Technical details
+        - Stateful and stateless
+        - Intrusion Prevention System
+        - Web filtering
+    - Works with Firewall Manager for centrally applying plicies across accounts/VPCs
+    - Under the hood, uses VPC endpoint and a Gateway Load Balancer.
+    - Must deploy in a dedicated firewall subnet so proper routing can be applied.
+    - Allocate a subnet per AZ.
+7. AWS Route 53 Resolver DNS Firewall
+    - Filter and regulate outbound DNS traffic for VPCs.
+    - Helps prevent DNS exfiltration of data.
+    - Monitor and control domains that can be queried.
+    - Use Firewall manager to configure and manage DNS firewalls.
+    - Management can span VPC's and accounts in AWS Organizations.
     
+Data and Application Protection
+
+1. Encryption at rest/in transit
+    - In transit - data moving through the network.  
+        - VPN's, SSL, TLS ect.
+    - At rest - When stored on a file system somewhere.
+        - Encrypted volumes, encrypted S3 buckets, databases with encryption.
+    - Asymmetric Encryption
+        - AKA public key cryptography.
+        - Message encrypted with public key and then decrypted by a private key.
+        - Messages encrypted with private key can be decrypted with public key.
+    - Symmetric Encryption
+        - No public or private keys.
+        - One key on both ends that encrypts and decrypts the data.
+2. ACM (AWS Certificate Manager)
+    - Used for encryption *IN TRANSIT*, NOT encryption at rest.
+    - Create, store, renew SSL/TLS X.509 certificates.
+    - Supports single domain, multiple domains names and wildcards.
+    - Integrations:
+        - ELB, CloudFront, ELastic Beanstalk, Nitro Enclave, CloudFormation
+    - Public certificates are signed by AWS public certificate authority.
+    - Can create private CA with ACM.
+    - Can issue private certificates.
+    - Can import from third party issues.
+
+3. Key manage service (KMS)
+    - Used for encryption *AT REST*, not in transit.
+    - Create symmetric and asymmetric encryption keys.
+    - KMS keys protected by hardware security modules (HSM)
+    - There are customer created keys and AWS created keys or AWS managed keys if you prefer.
+    - KMS keys are the primary resource in AWS KMS.
+    - *Previously known as customer master keys or CMKs*
+    - KMS key contains the key material used to encrypt and decrypt data.
+    - By default - KMS creates the key material for KMS key.
+    - You COULD import your own key material if you prefer.
+    - KMS can encrypt data up to 4kb in size.
+    - Can generate, encrypt and decrypt Data Encryption Keys (DEKs)
+        - Used for encrypting LARGE volumes of data.
+    - Key stores:
+        - External
+            - Can be stored outside AWS.
+            - Can create key in KMS external key store (XKS)
+            - Keys are stored and generated in external key manager.
+            - XKS, key material never leaves your HSM.
+        - Custom
+            - Can create keys in CloudHSM customer key store.
+            - Keys generated and stored in CLoudHSM cluster you own and manage.
+            - Cryptographic operations performed solely in CloudHSM cluster owned and managed by you.
+            - *Not applicable for asymmetric KMS keys*
+    - AWS managed keys
+        - Created and managed by AWS, integrated with KMS.
+        - User cannot manage these keys at all.
+        - Cannot use them in cryptographic operations directly.  The AWS service uses them on users behalf.
+    - Data encryption keys
+        - Encrypts large amounts of data.
+        - Can use keys to generate, encrypt and decrypt data keys.
+        - KMS does not store, manage or track your data keys.
+        - User must use and maange data keys outside of KMS.
+    - Rotation of keys
+        - Key type:
+            - Customer managed key: Can view: yes, can manage: yes, automatic rotation: Optional every 365 days.
+            - AWS managed key: can view: yes, can manage: no, automatic rotation: Required every 365 days.
+            - AWS owned key: can view: no, can manage: no, automatic rotation: Varies
+        - Rotation:
+            - Properties of the key do not change when rotation occurs.
+            - Don't need to change application or aliases that refer to the key ID or ARN of the key.
+            - If enabled AWS rotates yearly.
+            - Not supported for the following KMS keys:
+                - Asymmetric KMS keys
+                - HMAC keys
+                - custom key stores
+                - imported key material
+            - Manual rotation:
+                - manual rotation includes creating a new key with different key id
+                - must update applications with new key id
+                - can use alias to represent key so you don't need to modify application code.
+    - *Exam type questions*
+        - Sharing snapshots with another account requires you add *decrypt* and *CreateGrant* permissions.
+        - ksm:ViaService condition can be used to limit key usage to specific AWS services.
+        - cryptographic erasure means removing the ability to decrypt data.
+        - must "DeleteImportedKeyMaterial" API to remove key material.
+        - InvalidKeyId when using SSM parameter store indicates KMS key not enabled.
+        - Know difference between AWS managed and customer managed KMS keys and automatic vs manual rotation.
+
+
+
+
+
 
 
 
