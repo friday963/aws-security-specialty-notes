@@ -436,6 +436,33 @@ Data and Application Protection
             - Encrypted using server-side encryption.
             - Encrypts objects before saving to disk and decrypts upon download.
             - No change to encryption of objects that existed in bucket before encryption was enabled.
+        - S3 Glacier Vault Lock
+            - Vault lock enforces compliance controls for S3 glacier vaults with a lock policy.
+            - Can specify things like a WORM policy.
+            - Locks cannot be changed once set.
+        - S3 Glacier Vault Access Policy
+            - Resource based policy that can be used to manage permissions to the vault itself.
+            - Create one vault access policy for each vault to manage permissions.
+    - EBS
+        - Encryption will affect the following:
+            - Data is encrypted at rest and in transit.
+            - Snapshots of encrypted volumes are also encrypted.
+            - Traffic between AZ's is encrypted.
+        - AMIs and Snapshots
+            - If creating a snap shot of a volume: Encryption state (encrypted or unencrypted) is retained and stays in the region.
+            - If attempting to encrypt an unencrypted snapshot: you can convert an unencrypted to encrypted and can change regions.
+            - If attempting to convert unencrypted snapshot to encrypted volume: can be encrypted and can change AZ.
+            - If attempting to create an encrypted snapshot and convert to encrypted AMI: can be shared with other accounts (with a custom KMS key only), key must have *Decrypt* and *CreateGrant* permissions.  But AMI cannot be shared publicly.
+            - If attempting to copy one encrypted ami to another encrypted ami: can be done, you can change the encryption key and you can change regions.
+    - EFS
+        - Files systems are mounted using the *NFS* protocol.
+        - Many instances can mount a file system within and across VPCs.
+        - Can mount file systems from on-premises servers over DirectConnect (DX) or VPN.
+        - Only works with Linux instances.
+        - *Encryption at rest can ONLY be enabled when the file system is created.*
+        - *Encryption in transit is enabled when mounting the file system.*
+        
+
 
 
 
