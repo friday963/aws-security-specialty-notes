@@ -2,7 +2,7 @@
     - In an account we have users, groups, roles, and policies
     - we have a group and can assign users to groups and can assign permissions to user (policies)
     - Policies define the permissions for the identities or resources they are associated with.
-    - Identitiy-based policies can be applied to users, groups, and roles
+    - Identity-based policies can be applied to users, groups, and roles
     - Users gain permissions applied to the group through a policy
     - Roles are used for delegation and are assumed.
     - Groups:
@@ -24,7 +24,7 @@
 
     - Policies:
         - Policies are documents that define permissions and are written in json.
-        - All permissions are implicityly DENIED by default.  (You must explicitly allow something)
+        - All permissions are implicitly DENIED by default.  (You must explicitly allow something)
     - Two types of policies
         - Identity-based policies can be applied to users, groups, and roles.
         - Resource-based policies apply to resources such as s3 buckets or DynamoDB tables.
@@ -58,7 +58,7 @@
         - You can tell a RESOURCE based policy if it has a PRINCIPLE attached to it.
             - Could be a * meaning any user or role ect.  Or you could put a specific user or role in there.
         - Attached to resources such as S3 bucket.
-        - Resource based policies grant the specified PRINCIPLE(role, user), the PERMISSION, to perform specifix ACTION on RESOURCE.
+        - Resource based policies grant the specified PRINCIPLE(role, user), the PERMISSION, to perform specific ACTION on RESOURCE.
         - What is meant by video 19, 3:47 related to IAM role with a trust policy and permissions policy.
     - IAM permissions boundaries
         - Sets the maximum permissions an identity based policy can grant to an IAM entity.
@@ -87,7 +87,7 @@
 8. Determination rules
     - By default all requests are IMPLICITLY denied.
     - Explicit allow in an identity based or resource based policy OVERRIDES the default mentioned above.
-    - Permissions boundary, SCP, or session policy could override the allow actions with an implicity deny.
+    - Permissions boundary, SCP, or session policy could override the allow actions with an implicitly deny.
     - EXPLICIT denies in ANY policy overrides ANY allow.
     
 9. IAM policy structure
@@ -99,12 +99,12 @@
 10. IAM best practices
     - Secure or delete ROOT user access keys.
     - Create individual IAM users.
-    - Use groups to assin permission to IAM users.
+    - Use groups to assign permission to IAM users.
     - Grant least privilege.
-    - Get started using permissions with AWS maanged policies.
+    - Get started using permissions with AWS managed policies.
     - Use customer managed policies instead of INLINE policies.
     - Enable MFA.
-    - Use roles for aplications that run on EC2 instances.
+    - Use roles for applications that run on EC2 instances.
     - Use roles to delegate permissions.
     - Rotate creds regularly.
     - Remove unnecessary creds.
@@ -125,7 +125,7 @@ Organizations and Control Tower
     - Sits on top of Organizations.
     - Creates a "landing zone" whish is a well architected multi-account baseline.
     - Guardrails, used for governance and compliance.
-        - Preventitive guardrails are based on SCPs and disallow API actions.
+        - Preventative guardrails are based on SCPs and disallow API actions.
         - Detective guardrails implemented using Config and Lambda functions and monitor compliance.
         - Root user in the *management* account can perform actions that guardrails would normally disallow.
 
@@ -152,7 +152,7 @@ Infrastructure Security
         - Has both inbound and outbound rules.
     - NACL
         - Stateless
-        - Proccessed in order of rules.
+        - Processed in order of rules.
 4. VPC Peering
     - Keeps traffic private between internal VPC resources.
     - Must not have overlapping CIDR blocks.
@@ -200,8 +200,8 @@ Infrastructure Security
     - can store session logs in S3 and output in cloudwatch logs
     - require IAM permissions for EC2 to access SSM, S3, Cloudwatch logs.
 10. OpenSearch
-    - Cluster can be deployed intra-VPC or publicly accesible.
-    - Cannot switch from private to public endpoint or vica versa.
+    - Cluster can be deployed intra-VPC or publicly accessible.
+    - Cannot switch from private to public endpoint or vice versa.
     - Cannot launch on VPC using dedicated tenancy.
     - Cannot move between VPC's but you can change the subnet and security group settings.
     - Ingesting data:
@@ -217,7 +217,7 @@ Infrastructure Security
     - Must enable *DNS resolution* and *DNS hostnames* to connect to public cluster using private IP.
     - Use security groups to control access to database ports.
 12. Config
-    - Evalutes configurations against desired settings.
+    - Evaluates configurations against desired settings.
     - Get snapshot of current configs associated with AWS account.
     - Retrieve configs of resources that exist in account.
     - Retrieve historical configs.
@@ -232,10 +232,10 @@ Edge security
         - Provides more control over access to content.
         - Can be used to specify beginning/end date and time, IP addresses, and range of users.
         - 1 signed URL per file.
-            - If more than one file needs distribution you may want to use signed cookoies to avoid overhead.
+            - If more than one file needs distribution you may want to use signed cookies to avoid overhead.
     - Signed cookies
         - Use them when you don't want to change URLs
-        - Use when you want to provide access to multiple restiricted files.
+        - Use when you want to provide access to multiple restricted files.
     - OAI
         - Special type of "user".
         - Generated by the cloudfront distribution.
@@ -265,7 +265,7 @@ Edge security
     - executes functions closer to the viewer.
     - **Exam type questions**
         - Can run these functions during the following lifecycle events of a request.
-            - After CF receives a request from viewer (vierwer request)
+            - After CF receives a request from viewer (viewer request)
             - Before CF forwards to origin (origin request)
             - After CF receives the response from the origin(origin response)
             - Before CF forwards the response to the viewer (viewer response)
@@ -289,7 +289,7 @@ Edge security
         - Regex pattern sets: A collection of regex that you can use in a rule statement.
         - Match: statements compare web request or origin against conditions you provide.
 5. AWS Shield
-    - Protects agains DDOS attacks.
+    - Protects against DDOS attacks.
     - Protects web applications, always running, does in line mitigation.
     - Minimizes down time and latency.
     - Two tiers: Standard and Advanced.
@@ -299,13 +299,13 @@ Edge security
         - Stateful and stateless
         - Intrusion Prevention System
         - Web filtering
-    - Works with Firewall Manager for centrally applying plicies across accounts/VPCs
+    - Works with Firewall Manager for centrally applying policies across accounts/VPCs
     - Under the hood, uses VPC endpoint and a Gateway Load Balancer.
     - Must deploy in a dedicated firewall subnet so proper routing can be applied.
     - Allocate a subnet per AZ.
 7. AWS Route 53 Resolver DNS Firewall
     - Filter and regulate outbound DNS traffic for VPCs.
-    - Helps prevent DNS exfiltration of data.
+    - Helps prevent DNS infiltration of data.
     - Monitor and control domains that can be queried.
     - Use Firewall manager to configure and manage DNS firewalls.
     - Management can span VPC's and accounts in AWS Organizations.
@@ -367,7 +367,7 @@ Data and Application Protection
         - Encrypts large amounts of data.
         - Can use keys to generate, encrypt and decrypt data keys.
         - KMS does not store, manage or track your data keys.
-        - User must use and maange data keys outside of KMS.
+        - User must use and manage data keys outside of KMS.
     - Rotation of keys
         - Key type:
             - Customer managed key: Can view: yes, can manage: yes, automatic rotation: Optional every 365 days.
@@ -393,9 +393,49 @@ Data and Application Protection
         - must "DeleteImportedKeyMaterial" API to remove key material.
         - InvalidKeyId when using SSM parameter store indicates KMS key not enabled.
         - Know difference between AWS managed and customer managed KMS keys and automatic vs manual rotation.
+4. Cloud HSM
+    - Stands for Cloud Hardware Security Module
+    - Generate and use your own encryption keys.
+    - Runs in your own VPC.
+    - FIPS 140-2 level 3 validated HSM.
+    - AWS managed service.
+    - Retain control of your encryption keys.  AWS has no visibility of your encryption keys.
+    - Use cases:
+        - Offload SSL/TLS processing from web servers.
+        - Protect private keys for certificate authority.
+        - Store master key for transparent data encryption.
+        - Custom key store for KMS
 
-
-
+5. Securing data on volume stores (EBS, S3, EFS)
+    - S3
+        - Server side encryption with S3 managed keys (SSE-S3)
+            - Encryption and decryption takes place ON S3 itself.
+            - How
+                - S3 managed keys
+                - Unique object keys
+                - Master key
+                - AES 256
+        - Server side encryption with AWS KMS managed keys (SSE-KMS)
+            - Encryption and decryption happens on the S3 side.
+                - How
+                    - KMS managed keys
+                    - KMS key can be customer generated
+        - Server-side encryption, client provided keys (SSE-C)
+            - Encryption and decryption happens on the S3 side.
+            - How
+                - Client managed keys
+                - Not stored on AWS
+        - Client-side encryption
+            - Encryption happens on the client side, not the server side.
+            - How
+                - Client managed keys
+                - NOt stored on AWS.
+                - Could use a KMS key
+        - S3 Default encryption
+            - Set default encryption so all new objects are encrypted when stored in the bucket.
+            - Encrypted using server-side encryption.
+            - Encrypts objects before saving to disk and decrypts upon download.
+            - No change to encryption of objects that existed in bucket before encryption was enabled.
 
 
 
