@@ -141,7 +141,7 @@ Infrastructure Security
     - Further isolate tiers of an application through subnets.
     - Use privatelink to keep traffic private.
     - Use private subnets if instances should not be accessed directly from the internet.
-    - Use egress-only internet gateway for ipv6 outbound connections (Does not accesspt incoming connection attempts).
+    - Use egress-only internet gateway for ipv6 outbound connections (Does not accept incoming connection attempts).
 2. Stateful and stateless firewalls
     - Stateful firewalls allow return traffic.
     - Stateless firewalls will checks both directions of traffic, neither traffic flow is tracked.
@@ -159,7 +159,7 @@ Infrastructure Security
     - Does not support transitive peering.  Every VPC that wants to talk must be peered.
 5. VPC endpoints
     - Allows users to connect to 'public' resources, privately.
-    - Creates an ENI in the subnet where your resources are located and neeed connectivity from.
+    - Creates an ENI in the subnet where your resources are located and need connectivity from.
     - Need to add security group to add more granular security.
 6. VPC gateway endpoints
     - No ENI created, route table entry created.
@@ -461,9 +461,227 @@ Data and Application Protection
         - Only works with Linux instances.
         - *Encryption at rest can ONLY be enabled when the file system is created.*
         - *Encryption in transit is enabled when mounting the file system.*
-        
+6. DynamoDB and RDS
+    - DynamoDB
+        - Data encrypted at rest.
+        - Supports AWS owned KMS, AWS managed KMS, Customer managed KMS.
+        - Supports *identity-based* policies.
+    - RDS security
+        - RDS runs on instances within a VPC.
+        - Encryption at rest can be enabled if desired.
+        - Can ONLY enable encryption once RDS DB instances has been created.
+        - DB instances cannot be modified to disable encryption if encryption has been enabled.
+        - AES 256
+        - Oracle and SQL support TDS (Transparent Data Encryption)
+        - KMS used for managing encryption keys.
+        - Read replica
+            - Can't mix and match unencrypted DB instances, if main DB is encrypted read replica must be encrypted.  If main is unencrypted read replica must be unencrypted.
+            - Same KMS key is used if its in the same region as primary.
+            - If read replica in different region, different KMS key used.
+            - Cannot restored unencrypted backup or snapshot to encrypted instance.
+        - How could you migrate an RDS instance from unencrypted to encrypted...
+            - RDS unencrypted > Create unencrypted snapshot of EBS volume > Copy the snapshot but change the status to encrypted > restore the snapshot to a new RDS instance with encrypted snapshot copy.
+7. SSM Parameter store
+    - Storage for configuration data and secrets.
+    - Highly scalable, available, and durable.
+    - Store values as plaintext or encrypted data.
+    - Reference values by using the unique name (Key, Value)
+    - No native rotation of keys (unlike AWS secrets manager)
 
+8. Secrets manager
+    - Offers automatic rotation of creds.
+    - Supports the following technologies
+        - RDS: MySQL, PostgreSQL, Aurora
+        - Redshift
+        - DocumentDB
 
+9. AWS Signer
+    - Used to ensure trust and integrity of code.
+    - Code validated against digital signature.
+    - Only trusted code will run in lambda functions.
+    - Creates digitally signed package for deployment.
+    - *IAM policies can enforce that functions can be created only if code signing enabled.*
+    - *If developer leaves org, revoke all versions of the signing profile so code cannot run.*
+
+Logging, monitoring, auditing
+
+1. CloudWatch/EventBridge/CloudTrail
+    - Cloudwatch Metrics
+        - Time ordered data points sent to cloudwatch
+        - Ec2 sends metrics every 5 minutes by default (this is free monitoring)
+        - Detailed monitoring can send every 1 minute (costs additional charges)
+        - Install *unified agent* to get system level metrics from Ec2 and on-prem servers.
+            - System metrics including things like: *memory* and *disk usage*
+    - Cloudwatch Alarms
+        - Monitoring of metrics and initiate actions.
+        - Alarm types:
+            - Metric alarm:
+                - Perform an action based on metric.
+            - Composite alarm:
+                - Use rule expression and takes into account multiple alarms.
+        - Alarm state
+            - OK: within threshold
+            - ALARM: out of threshold
+            - INSUFFICIENT_DATA: not enough data
+    - Cloudwatch Logs
+        - Centralized system and application logs.
+    - CloudWatch Eventbridge (legacy 'Events')
+        - Stream of system events describing changes changes to AWS resources
+        - Cannot trigger actions from here.
+        - Flow:
+            - Event occurs from a resource > sends event to "EventBridge" event bus > Rules get evaluated > Data sent to a service to be processed.
+    - CloudTrail
+        - Logs API activity for auditing
+        - *By default, management events are logged and retained for 90 days*
+        - *Logs sent to S3 have indefinite retention*
+            - Log files sent to S3 can use *integrity validation*, which checks if logs have been tampered with.
+        - Can be within a region or all regions.
+        - Cloudwatch events can be triggered based on API calls in CloudTrail.
+        - Events can be streamed to cloudwatch logs.
+        - Event types:
+            - Management events
+                - Management operations performed on resources.
+            - Data events
+                - Resource operations performed on or in resource.
+            - Insights events
+                - Identify and respond to unusual activity associated with "write" operations.
+2. Directory services
+    - AWS managed microsoft AD.
+        - HA pair of windows server 2012 domain controllers (DC)
+        - Alternatively you can use on-prem AD instances.
+        - Can create one or two way trust relationship between AWS managed AD and on-prem AD if desired.
+    - ADSync
+        - Active Directory synchronization, is used to synchronize user accounts and identity information between on-premises Active Directory and cloud-based identity platforms like Azure Active Directory (Azure AD). It ensures consistent and up-to-date user identities across both environments, enabling single sign-on, centralized identity management, seamless integration, and hybrid identity scenarios.
+    - ADFS
+        - Active Directory Federation Services is a Microsoft service that enables Single Sign-On (SSO) and federation between organizations. It allows users to access multiple applications and services using a single set of credentials. Integrates with Active Directory, and supports the SAML protocol for secure communication. It provides web-based SSO, supports customizations, and facilitates secure identity exchange between organizations.
+    - AD Connector
+        - Connect on-prem AD with AD Connector service.
+    - Identity Federation
+        - Identity providers
+            - User accounts
+        - Service providers
+        - AWS Single sign-on
+            - More of an enterprise solution.
+            - Central management for federated access.
+            - Attach multiple AWS accounts and business applications
+            - Identities can be in AWS SSO.
+            - Works with many IdPs
+            - Permissions assigned base on group membership in IdP
+        - Cognito
+            - Federated support for web and mobile apps
+            - Sign in and sign up
+            - Sign in with social IdP's
+            - Supports SAML 2.0
+            - User pools
+                - A directory for managing sign-in and sign-up for mobile applications.
+            - Identity pool
+                - Identity can come from Cognito user pool or identity provider.
+                - Identity pools are used to obtain temporary, limited privilege creds for services.
+                - Identity pools use STS to obtain the creds.
+                - IAM role assumed providing access to the service.
+            - Cognito in action:
+                1. Client talks with cognito user pool
+                2. Cognito responds with JWT
+                3. JWT passed to API gateway.
+                4. API gateway then passes to lambda function
+            - Important differentiator
+                - User pools contains the identity, the identity pool are how you get the credentials to access AWS resources.
+            
+        - IAM
+            - Can use separate SAML 2.0
+            - Enables access control using federated user attributes
+            - Identity federation in action:
+                1. Client initiates communication with IdP
+                2. IdP brokers communication to Identity store (LDAP)
+                3. IdP returns SAML assertion to client.
+                4. Client calls application with the 'sts:AssumeRoleWithSAML'
+                5. AWS returns temp creds (as you would expect with sts).
+                6. You can then access the resource in AWS.
+        - SSO
+            - Can be an identity store, alternatively you can use AD, or providers using SAML protocol.
+            - you can create accounts within SSO
+
+Incident response and data analysis
+
+1. Security management and support
+    - Security hub
+        - View of security alerts and security posture *across accounts*
+        - Aggregates and prioritizes security alerts from those accounts.
+        - Continuously monitors environment.
+        - Validates environments against:
+            - AWS foundational security best practices
+            - CIS AWS Foundations benchmark
+            - PCI DSS
+    - Security bulletins
+        - Publishes security and privacy events affecting services.
+    - Trust and safety team
+        - POC if resources are being abused.
+2. Pen testing
+    - Resources you can test against:
+        - Ec2
+        - Nat gateway
+        - ELB (Elastic load balancer)
+        - RDS
+        - CloudFront
+        - Aurora
+        - API gateway
+        - Lambda/lambda@edge
+        - Lightsail
+        - Elastic beanstalk
+    Not allowed:
+        - DNS zone walking
+        - DOS, DDOS, Simulated DOS, Simulated DDoS port flooding
+        - Protocol flooding
+        - Request flooding
+3. Incident response plans
+    - Based on the Cloud adoption framework
+        - Four areas of focus:
+            - Educate
+            - Prepare (People)
+            - Prepare (Technology)
+            - Simulate
+            - Iterate
+4. AWS artifact
+    - Gives access to AWS security and compliance reports and online agreements.
+        - Service Organization Control reports
+        - Payment card industry reports
+5. Detecting and respond
+    - Amazon Detective
+        - Analyze and investigate root cause of security issues.
+        - Pulls data from AWS resources.
+        - Uses ML
+        - Data sources can include Flow logs, CloudTrail, and GuardDuty
+    - GuardDuty
+        - Intelligent threat detection.
+        - Detects account, instance and bucket compromise, along with reconnaissance .
+        - Continuous monitoring for:
+            - CloudTrail management events
+            - CloudTrail s3 data events.
+            - Flow logs
+            - DNS logs
+    - Macie
+        - Machine learning and pattern matching for sensitive data in S3.
+        - Can identify the following
+            - PII
+            - PHI
+            - Regulatory Documents
+            - API keys
+            - secret keys
+6. Athena
+    - Optimize for performance
+        - Partition your data.
+        - Bucket your data in a single partition.
+        - Use compression.
+        - Optimize file sizes.
+        - Optimize columnar data store generation.
+        - Optimize ORDER BY and GROUP BY
+        - Use approximate functions
+        - Only include columns you need.
+7. Glue
+    - Fully managed ETL service.
+    - Prepares data for analytics.
+    - Discovers data and associated metadata.
+    - Works with data lakes, warehouses and stores.
 
 
 
