@@ -1,4 +1,5 @@
 1. IAM users, groups, roles, and policies
+    - Every account created has a root user, the username is the email address of that user.
     - In an account we have users, groups, roles, and policies
     - we have a group and can assign users to groups and can assign permissions to user (policies)
     - Policies define the permissions for the identities or resources they are associated with.
@@ -9,7 +10,10 @@
         - Groups are a collection of users
         - Users can be members of up to 10 groups.
         - Reason to use groups is to apply permissions to users using policies.
+        - Groups cannot be used as a principle.
     - Roles:
+        - Should be used when you need to share permissions across users.
+        - Roles are ASSUMED, not logged into.
         - IAM role is an IAM identity that has specific permissions
         - Roles are assumed by users, applications, and services.
         - Once assumed, the identity "becomes" the role and gain the roles permissions.
@@ -21,30 +25,84 @@
             - Delegation of aws services:
                 - Ec2 with an *instance profile*.  The instance profile has a *trust policy* and a *permissions policy*.  
                 - *Trust policies* determine who can assume the role.
+        - Two potential ways to grant Ec2 permissions access Keys and IAM roles
+            - Access keys
+                - Associated with an IAM account.
+                - Access keys use permissions assigned to the IAM user.
+                - Access keys are stored on the file system of the EC2.
+            - Instance profile
+                - Used exclusively for ec2 instances.
+                    - Roles are the backbone of instance profiles.
+                - Connects an IAM role to the Ec2.
+                - Role can be assumed by the Ec2.
+                - Gains permissions based on the policy assigned to the role.
+                - No creds stored on the Ec2.
+                - Can view what instance profile is attached to your instance through the meta-data using http://169.254.169.254/latest/meta-data/iam/info
+                - Can view STS access and secret access keys with instance meta-data url as well.
 
     - Policies:
         - Policies are documents that define permissions and are written in json.
         - All permissions are implicitly DENIED by default.  (You must explicitly allow something)
-    - Two types of policies
-        - Identity-based policies can be applied to users, groups, and roles.
-        - Resource-based policies apply to resources such as s3 buckets or DynamoDB tables.
-    - Root user
-        - the account with full permissions
+        - When cross account policies are required.
+            - Two part process:
+                - Trust policy of the principle.
+                - Identity policy granting permission.
+    - Four types of policies
+        - Main types:
+            - Identity-based policies can be applied to users, groups, and roles.
+                - Two types of policies within identity based.
+                    - Inline
+                    - Managed
+            - Resource-based policies apply to resources 
+                - Grants permissions as an inline policy.
+                - Attached to resources
+                    - grants permissions to certain principals (like an s3 bucket)
+                - Cross account
+                    - Required for cross-account access.  Trust the principle and assign correct permissions to principal.
+                - Trust policy
+                    - Resource based policies only support *trust policies*.
+        - Managed policies
+            - AWS managed policy
+                - Created and managed by AWS.
+                - Common use cases for job functions.
+                - No maintenance required.
+        - Inline policies
+            - Embedded within our identities in AWS IAM.
+            - They become part of the identity.
+            - Created at time of identity creation or after.
+            - Good for one off permissions.
     - Regular users
         - up to 5000 individual users can be created
         - They have no permissions by default
+    - Permissions evaluation order
+        1. Explicit deny statements (always takes precedence)
+        2. SCP
+        3. Resource based policy. 
+        4. Permission boundary (specific boundaries set on an identity)
+        5. Session policy (parameters for temporary sessions.)
+        6. Identity based policy (Lowest level of evaluation and has an implicit deny.)
+        
 
 2. STS security token service
+    - Basics
+        - They are just temporary credentials for trusted identities.
+        - Similar to access keys.
+        - Short term, compared to regular credentials for a user.
+        - STS actually generates credentials on behalf of the caller.
+        - STS is the basis for IAM roles.
+        - STS is global by default.
     - Two pieces to an IAM role:
         - Trust policy:
-            - Controls who can assume a specific role.
+            - Controls who (principle) can assume a specific role.
             - Trust policy should have the following:
                 Effect: Allow/Deny
                 Principal
                     service: ec2.amazon.com, s3.amazon.com, ebs.amazon.com ect
                 Action: "sts:AssumeRole" <-- Here is where STS is called out.
         - Permissions policy
+            - The actual permissions of the role.
     - Temporary credentials are used with identity federation, delegation, cross-account access and IAM roles
+        - Federated identities will actually ALWAYS use STS to assume their designated roles.
 
 3. IAM Access Control
     - Identity based policies
@@ -61,7 +119,17 @@
         - Resource based policies grant the specified PRINCIPLE(role, user), the PERMISSION, to perform specific ACTION on RESOURCE.
         - What is meant by video 19, 3:47 related to IAM role with a trust policy and permissions policy.
     - IAM permissions boundaries
+        - Protection from over provisioning.
+        - Does not GRANT permissions, only RESTRICTS the maximum permissions allowed.
+        - Only used for identities in IAM, does not work with resource based policies.
         - Sets the maximum permissions an identity based policy can grant to an IAM entity.
+        - If a permissions boundary does not have overlapping permissions with an identity policy or role that access will not be granted, even if the policy allows it.
+            - eg.  Here is a policy that allows Ec2 all actions.
+             ![Policy](images/policy_for_perm_boundary.png)
+            - Here is a permissions boundary applied to the principle.
+             ![Permissions boundary](images/perm_boundary.png)
+                - In this example, the user would have all permissions for ec2 but because the permissions boundary denied the terminate action, that would be blocked.
+            - Finally as another example of requiring overlapping privileges, if we had the same identity policy, but an empty permissions boundary applied to the user they would have no privileges because there was no boundary giving permissions to Ec2.
     - SCP
         - Specify the max permissions for an OU
     - Session policies 
@@ -98,6 +166,8 @@
 
 10. IAM best practices
     - Secure or delete ROOT user access keys.
+    - If access keys or secret keys are exposed. Invalidate the temp creds and delete them.
+    - If STS is compromised revoke the active sessions for the role.
     - Create individual IAM users.
     - Use groups to assign permission to IAM users.
     - Grant least privilege.
@@ -150,6 +220,7 @@ Infrastructure Security
         - Applied to the ENI of a resources.
         - Only have allow rules (does not have deny rules except for the implicit deny.)
         - Has both inbound and outbound rules.
+        - You can get notifications about security group changes by using cloudtrail pushing logs to cloudwatch logs and use a metric filter to match security group changes.
     - NACL
         - Stateless
         - Processed in order of rules.
@@ -169,17 +240,13 @@ Infrastructure Security
 7. VPC Flow logs
     - Traffic capture of traffic going to or from your network resources.
     - Stored in CloudWatch logs or S3.
+        - Can use metric filters to search for specific event patterns such as connection attempts.
     - Can be captured from VPC, Subnet, or Network Interface.
-    - Access Keys and IAM roles
-        - Access keys
-            - Associated with an IAM account.
-            - AK use permissions assigned to the IAM user.
-            - AK are stored on the file system of the EC2.
-        - Instance profile
-            - Connects an IAM role to the Ec2.
-            - Role can be assumed by the Ec2.
-            - Gains permissions based on the policy assigned to the role.
-            - No creds stored on the Ec2.
+8. EC2
+    - You can collect memory dumps from EC2 that are unresponsive with the Ec2rescue cli with /offline and device id specified.
+    - If ssh keys compromised, remove them and replace public key information in the 'authorized_keys' file.
+
+    
 8. Amazon Inspector
     - Runs assessments that check for security.
     - Can run on schedule.
@@ -223,6 +290,7 @@ Infrastructure Security
     - Retrieve historical configs.
     - Receive notifications when resources are created, modified, deleted.
     - View relationships between resources.
+    - Can configure 'restricted-ssh' managed rule to find security groups that allow unfettered access on port 22.
 
 Edge security
 1. DNS and DNS routing
@@ -273,6 +341,7 @@ Edge security
     - Lets you create rules to filter web traffic using rules like IP addresses, headers, body, and custom URI's.
     - **Exam type question**
         - You can create rules to block common web exploits like *SQL injection*, and *cross site scripting*.
+        - Can block requests where user-agent field has certain values with a WAF ACL using the string match condition.
     - You can put WAF in front of...
         - CloudFront
         - ALB
@@ -512,6 +581,7 @@ Logging, monitoring, auditing
         - Detailed monitoring can send every 1 minute (costs additional charges)
         - Install *unified agent* to get system level metrics from Ec2 and on-prem servers.
             - System metrics including things like: *memory* and *disk usage*
+        
     - Cloudwatch Alarms
         - Monitoring of metrics and initiate actions.
         - Alarm types:
@@ -523,15 +593,19 @@ Logging, monitoring, auditing
             - OK: within threshold
             - ALARM: out of threshold
             - INSUFFICIENT_DATA: not enough data
-    - Cloudwatch Logs
+    - Cloudwatch
         - Centralized system and application logs.
-    - CloudWatch Eventbridge (legacy 'Events')
+        - EC2 in private subnet running unified cloudwatch agent can send logs security via *interface VPC endpoint*.
+        - Can send logs to S3, kinesis streams and firehose.
+        - If lambda fails to write logs to cloudwatch, check the role permissions.
+    - CloudWatch Eventbridge (legacy 'Cloudwatch Events')
         - Stream of system events describing changes changes to AWS resources
         - Cannot trigger actions from here.
         - Flow:
             - Event occurs from a resource > sends event to "EventBridge" event bus > Rules get evaluated > Data sent to a service to be processed.
     - CloudTrail
         - Logs API activity for auditing
+        - Cloudtrail 'trail' can be configured in management account of an AWS Organization with logging to a centralized bucket.  Child accounts cannot modify this trail.
         - *By default, management events are logged and retained for 90 days*
         - *Logs sent to S3 have indefinite retention*
             - Log files sent to S3 can use *integrity validation*, which checks if logs have been tampered with.
@@ -651,6 +725,7 @@ Incident response and data analysis
         - Pulls data from AWS resources.
         - Uses ML
         - Data sources can include Flow logs, CloudTrail, and GuardDuty
+        - Must have guarduty enabled for more than 48 hours before this will be made available.
     - GuardDuty
         - Intelligent threat detection.
         - Detects account, instance and bucket compromise, along with reconnaissance .
