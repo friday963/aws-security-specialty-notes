@@ -105,6 +105,8 @@
         - Federated identities will actually ALWAYS use STS to assume their designated roles.
 
 3. IAM Access Control
+    - Each account always has its own unique IAM instance, it is not shared across accounts.  You can share resources, but the IAM within it is still unique to that account.
+    - IAM is GLOBAL not a regional service.
     - Identity based policies
         - controls actions an identity can perform on resources and under what conditions.
         - Can be attached to a user, group, or role
@@ -132,6 +134,11 @@
             - Finally as another example of requiring overlapping privileges, if we had the same identity policy, but an empty permissions boundary applied to the user they would have no privileges because there was no boundary giving permissions to Ec2.
     - SCP
         - Specify the max permissions for an OU
+        - Granularly specifies maximum permissions for all accounts.
+        - Ensures member accounts stay within control guidelines.
+        - Must enable all features within the organization.
+        - Do not necessarily affect users in the management account.
+        - Always trumps all lower level policies.
     - Session policies 
         - Used with assumeRole* API actions
 
@@ -185,12 +192,18 @@ Organizations and Control Tower
 
 1. Organizations
     - Consolidates multiple AWS accounts into organizations so you can create and centrally manage them.
+    - Allows for OU's or Organizational units of accounts for separation and compliance.
+    - Policy enforcement through SCP's to control access to services and API's within child accounts.
+    - Allows you to opt out of machine learning used by AWS for future improvements.
+    - Free to use.
     - Two features
         - Consolidated billing within the "management account".
         - All features - SCP's and tag policies.
     - Consolidated billing
         - Paying account: Independent and unable to access resources of other account.
         - Linked account: all linked accounts are independent.
+    - Can generate an IAM role within every member account, it can be assumed as a role.
+        - Role is: OrganizationAccountAccessRole and is used for administrative purposes.
 2. Control tower
     - Sits on top of Organizations.
     - Creates a "landing zone" whish is a well architected multi-account baseline.
@@ -260,13 +273,26 @@ Infrastructure Security
         - CVE harding best practices.
         - requires the agent.
         - Pricing model based on number of *assessments* completed.
-9. Systems manager session manager
+9. Trusted Advisor
+    - Uses industry best practices to check AWS accounts.
+    - Works at the account level.
+    - 2 levels:
+        - Basic support
+            - Limited checks available.
+        - Enterprise support
+    - What does it check?
+        - Cost optimization: Where can we save money in our account?
+        - Performance: Where can we improve speed, efficiency and responsiveness.
+        - Security: How can we better secure our environment.
+        - Fault tolerance: How can we help increase resiliency.
+        - Service limits: Checks service limits in the acocunt.
+10. Systems manager session manager
     - Remote management of instances without logging into servers
     - removes need for ssh
     - granular permissions with IAM
     - can store session logs in S3 and output in cloudwatch logs
     - require IAM permissions for EC2 to access SSM, S3, Cloudwatch logs.
-10. OpenSearch
+11. OpenSearch
     - Cluster can be deployed intra-VPC or publicly accessible.
     - Cannot switch from private to public endpoint or vice versa.
     - Cannot launch on VPC using dedicated tenancy.
@@ -275,7 +301,7 @@ Infrastructure Security
         - Kinesis data firehose.
         - Logstash
         - Elasticsearch/open search API
-11. Redshift
+12. Redshift
     - Fully managed data warehouse.
     - Uses SQL and BI tools.
     - Online analytics processing (OLAP).
@@ -283,7 +309,7 @@ Infrastructure Security
     - For public cluster, specify an *elastic* IP to use.
     - Must enable *DNS resolution* and *DNS hostnames* to connect to public cluster using private IP.
     - Use security groups to control access to database ports.
-12. Config
+13. Config
     - Evaluates configurations against desired settings.
     - Get snapshot of current configs associated with AWS account.
     - Retrieve configs of resources that exist in account.
@@ -598,17 +624,24 @@ Logging, monitoring, auditing
         - EC2 in private subnet running unified cloudwatch agent can send logs security via *interface VPC endpoint*.
         - Can send logs to S3, kinesis streams and firehose.
         - If lambda fails to write logs to cloudwatch, check the role permissions.
+        - Different KMS Encryption supported per log group.
+        - Each log group can have up to 2 subscription filters.
+            - Useful if you need to match on specific pattern and take action based on specific patterns.
+            - Cannot modify in place, if a change to a subscription is needed it must be deleted and re-created.
     - CloudWatch Eventbridge (legacy 'Cloudwatch Events')
         - Stream of system events describing changes changes to AWS resources
         - Cannot trigger actions from here.
         - Flow:
             - Event occurs from a resource > sends event to "EventBridge" event bus > Rules get evaluated > Data sent to a service to be processed.
+        
     - CloudTrail
         - Logs API activity for auditing
         - Cloudtrail 'trail' can be configured in management account of an AWS Organization with logging to a centralized bucket.  Child accounts cannot modify this trail.
         - *By default, management events are logged and retained for 90 days*
         - *Logs sent to S3 have indefinite retention*
             - Log files sent to S3 can use *integrity validation*, which checks if logs have been tampered with.
+            - A file is included that tracks the hash.
+            - Cross region replication would break the validation and would report a change to the log files.
         - Can be within a region or all regions.
         - Cloudwatch events can be triggered based on API calls in CloudTrail.
         - Events can be streamed to cloudwatch logs.
@@ -619,17 +652,48 @@ Logging, monitoring, auditing
                 - Resource operations performed on or in resource.
             - Insights events
                 - Identify and respond to unusual activity associated with "write" operations.
+    - Kinesis Data Firehose
+        - Near real time logging and data analysis.
+        - Delivery based on buffer size or time intervals.
+            - Time interval will never be earlier than 60 seconds, as opposed to kinesis data streams which can deliver within milliseconds.
+        - Good for loading large amounts of data for data stores and analytics tools.
+        - Can deliver to lambda to transform data before being send to final destination.
+        - Allows you to replay events and data persistence.
+    - Kinesis data streams
+        - Actual real time or as close as you can get.  This is in contrast to firehose which is NEAR real time.
+        - Can ingest data within a second of delivery.
+    - Audit manager
+        - Continuously audits AWS to simply managing compliance and risk issues.
+        - Collects evidence automatically.
+        - Includes frameworks that automate assessments.
+        - Process flow:
+            - Automatic: Evidence gets collected automatically during assessments.
+            - Frameworks: All assessments are based on frameworks, standard or custom depending on requirements.
+            - Reports: Assessments are finalized docs generated from audit manager assessments.
+            - Summarized: Report provides summarized evidence collected during audit.
+        - Only for use with AWS resources, not on-prem.
+        - 
 2. Directory services
     - AWS managed microsoft AD.
+        - Creates two ENI's, Eth0 and Eth1.  Eth0 is a management interface for connectivity to controller, the other is in the user VPC for interaction with VPC resources.
+            - Management IP range 198.18.0.0/15
         - HA pair of windows server 2012 domain controllers (DC)
         - Alternatively you can use on-prem AD instances.
         - Can create one or two way trust relationship between AWS managed AD and on-prem AD if desired.
+            - Two types of domains, trusted and trusting.
+                - Trusted domains are allowed to access resources in the trusting domain.  But not in the other direction if 2 way trust isn't set up.
     - ADSync
         - Active Directory synchronization, is used to synchronize user accounts and identity information between on-premises Active Directory and cloud-based identity platforms like Azure Active Directory (Azure AD). It ensures consistent and up-to-date user identities across both environments, enabling single sign-on, centralized identity management, seamless integration, and hybrid identity scenarios.
     - ADFS
         - Active Directory Federation Services is a Microsoft service that enables Single Sign-On (SSO) and federation between organizations. It allows users to access multiple applications and services using a single set of credentials. Integrates with Active Directory, and supports the SAML protocol for secure communication. It provides web-based SSO, supports customizations, and facilitates secure identity exchange between organizations.
     - AD Connector
         - Connect on-prem AD with AD Connector service.
+        - No AD trust available with this.
+        - Requires existing AD setup.
+        - Does support radius based MFA.
+        - Requires network connectivity back on-prem.  It lives within your VPC.  If you experienced a network outage, AD connector would go offline.
+        - Much less overhead compared to managed AD implementation since its just a connector.
+        - No data is stored or replicated in AWS.
     - Identity Federation
         - Identity providers
             - User accounts
@@ -646,9 +710,20 @@ Logging, monitoring, auditing
             - Sign in and sign up
             - Sign in with social IdP's
             - Supports SAML 2.0
+            - Authentication process flow:
+                1. User auth's against their web IdP.
+                2. Token exchanged within Cognito for IAM credentials.
+                3. Cognito validates creds and requests STS creds for an IAM role.
+                4. IAM returns STS creds for short term access.
             - User pools
                 - A directory for managing sign-in and sign-up for mobile applications.
+                - Customizable web user interface.
+                - Leverage well-known IdP's.
+                - Allows the enforcement of MFA.
+                - Offers checks for compromised creds, account takeover, and has multiple verification methods.
+                - Can use Lambda to perform custom actions and workflows.
             - Identity pool
+                - At this point identity pools ARE federated identities that can become specific IAM roles.
                 - Identity can come from Cognito user pool or identity provider.
                 - Identity pools are used to obtain temporary, limited privilege creds for services.
                 - Identity pools use STS to obtain the creds.
@@ -660,6 +735,11 @@ Logging, monitoring, auditing
                 4. API gateway then passes to lambda function
             - Important differentiator
                 - User pools contains the identity, the identity pool are how you get the credentials to access AWS resources.
+            - High level benefits of web federation:
+                - Offload user validating and authenticating user identities.
+                - No custom sign-in in code.
+                - Well-known integrations.
+                - Any OIDC provider can be used for IDF purposes.
             
         - IAM
             - Can use separate SAML 2.0
@@ -727,13 +807,21 @@ Incident response and data analysis
         - Data sources can include Flow logs, CloudTrail, and GuardDuty
         - Must have guarduty enabled for more than 48 hours before this will be made available.
     - GuardDuty
-        - Intelligent threat detection.
-        - Detects account, instance and bucket compromise, along with reconnaissance .
+        - Intelligent threat detection using machine learning.
+        - Detects account, instance and bucket compromise, along with reconnaissance.
+            - Key word: DETECTS, it does not prevent anything.  Using different terminology, its just an IDS.
         - Continuous monitoring for:
             - CloudTrail management events
             - CloudTrail s3 data events.
             - Flow logs
             - DNS logs
+        - Event integrations
+            - Eventbridge: Any findings will be available to take action against in eventbridge.
+            - Best effort: Events coming from guarduty are only best effort.
+            - Events will have a unique id attached.
+            - Administrator account with receive all findings and events that occur in member accounts.
+            - Events can be tied to SNS.
+            - Leverage lambda remediation.
     - Macie
         - Machine learning and pattern matching for sensitive data in S3.
         - Can identify the following
