@@ -682,6 +682,11 @@ Logging, monitoring, auditing
         - Can create one or two way trust relationship between AWS managed AD and on-prem AD if desired.
             - Two types of domains, trusted and trusting.
                 - Trusted domains are allowed to access resources in the trusting domain.  But not in the other direction if 2 way trust isn't set up.
+                    - For example:
+                        - You want on-prem resources granted access to cloud resources, but cloud resources cannot access on-prem resources.
+                        - On-prem is your *TRUSTED* domain.
+                        - Cloud is your *TRUSTING* domain.
+                        - Cloud is TRUSTING and granting access to its resources to a on-prem which is TRUSTED.  But the permissions are not bi-directional.
     - ADSync
         - Active Directory synchronization, is used to synchronize user accounts and identity information between on-premises Active Directory and cloud-based identity platforms like Azure Active Directory (Azure AD). It ensures consistent and up-to-date user identities across both environments, enabling single sign-on, centralized identity management, seamless integration, and hybrid identity scenarios.
     - ADFS
